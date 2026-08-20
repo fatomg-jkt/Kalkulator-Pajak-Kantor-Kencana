@@ -17,11 +17,27 @@ const taxTabs = [
   { id: 'unifikasi', label: 'PPh Unifikasi' }
 ];
 
-const heroCards = {
-  pph21: { kicker: 'PPh 21', title: 'TER & Gross Up', text: 'Hitung PPh 21 dengan metode Gross, Gross Up, atau Nett. Masa selain terakhir memakai TER, sedangkan masa pajak terakhir direkonsiliasi secara tahunan.' },
-  ppn: { kicker: 'PPN', title: '11% / 12%', text: 'PPN transaksi umum dihitung efektif 11% melalui DPP nilai lain 11/12, sedangkan transaksi barang mewah tertentu menggunakan 12%.' },
-  umkm: { kicker: 'PPh Final UMKM', title: 'Tarif 0,5%', text: 'Hitung PPh Final UMKM 0,5% dengan fasilitas bagian omzet sampai Rp500 juta setahun untuk Wajib Pajak Orang Pribadi sesuai syarat yang berlaku.' },
-  unifikasi: { kicker: 'PPh Unifikasi', title: 'e-Bupot Unifikasi', text: 'Mencakup objek umum PPh 23, PPh Final 4(2), jasa konstruksi, PPh 26, serta tarif manual untuk PPh 15, PPh 22, atau objek khusus.' }
+const regulationCards = {
+  pph21: {
+    kicker: 'Peraturan terbaru · PPh 21',
+    title: 'PP 58/2023 & PMK 168/2023',
+    text: 'PPh 21 pegawai tetap memakai Tarif Efektif Rata-rata pada masa selain masa pajak terakhir. Pada masa pajak terakhir dilakukan rekonsiliasi tahunan, dan Coretax menerbitkan Bukti Potong A1 (BPA1) untuk pegawai tetap/pensiunan.'
+  },
+  ppn: {
+    kicker: 'Peraturan terbaru · PPN',
+    title: 'PMK 131/2024',
+    text: 'Sejak 1 Januari 2025, transaksi umum non-mewah pada prinsipnya memakai tarif formal 12% dengan DPP nilai lain 11/12 sehingga beban efektif PPN tetap 11%. Barang mewah tertentu menggunakan 12% penuh.'
+  },
+  umkm: {
+    kicker: 'Peraturan terbaru · PPh Final UMKM',
+    title: 'PP 20/2026',
+    text: 'Berlaku sejak 22 April 2026 dan memperbarui skema PPh Final UMKM 0,5%, termasuk subjek, batas waktu penggunaan, agregasi omzet, serta ketentuan transisi. Fasilitas omzet Rp500 juta tetap khusus WP Orang Pribadi yang memenuhi syarat.'
+  },
+  unifikasi: {
+    kicker: 'Peraturan terbaru · PPh Unifikasi',
+    title: 'Coretax & PMK 81/2024',
+    text: 'Administrasi pemotongan/pemungutan melalui Coretax mengikuti kerangka PMK 81/2024 beserta perubahan yang relevan, termasuk PMK 1/2026. Tarif PPh Unifikasi tetap mengikuti jenis objek: PPh 4(2), 15, 22, 23, atau 26.'
+  }
 };
 
 const unificationOptions = [
@@ -73,12 +89,19 @@ function Pph21Calculator() {
       ? 'Gross Up: perusahaan memberi tunjangan pajak sebesar PPh 21 sehingga penghasilan setelah pajak tetap sebesar nilai dasar yang dimasukkan.'
       : 'Nett: PPh 21 ditanggung pemberi kerja. Untuk tujuan pajak, PPh yang ditanggung menjadi penambah penghasilan bruto sehingga gross-equivalent dihitung kembali.';
 
+  const annualMode = mode === 'annual' || mode === 'a1';
+
   return <div className="calculator-grid">
     <section className="panel form-panel">
       <MethodSelector method={method} setMethod={setMethod} />
-      <div className="segmented"><button className={mode === 'monthly' ? 'active' : ''} onClick={() => setMode('monthly')}>Masa selain terakhir</button><button className={mode === 'annual' ? 'active' : ''} onClick={() => setMode('annual')}>Masa pajak terakhir</button></div>
+      <div className="segmented pph21-mode">
+        <button className={mode === 'monthly' ? 'active' : ''} onClick={() => setMode('monthly')}>Masa selain terakhir</button>
+        <button className={mode === 'annual' ? 'active' : ''} onClick={() => setMode('annual')}>Masa pajak terakhir</button>
+        <button className={mode === 'a1' ? 'active' : ''} onClick={() => setMode('a1')}>BP A1</button>
+      </div>
       <label className="field"><span>Status PTKP</span><select value={status} onChange={(e) => setStatus(e.target.value)}>{Object.keys(PTKP).map((key) => <option key={key}>{key}</option>)}</select><small>PTKP ditentukan dari kondisi pada awal tahun pajak.</small></label>
-      {mode === 'monthly' ? <MoneyInput label={`${amountLabel} bulan ini`} value={grossMonthly} onChange={setGrossMonthly} hint="Untuk pegawai tetap pada masa pajak selain masa pajak terakhir." /> : <>
+      {!annualMode ? <MoneyInput label={`${amountLabel} bulan ini`} value={grossMonthly} onChange={setGrossMonthly} hint="Untuk pegawai tetap pada masa pajak selain masa pajak terakhir." /> : <>
+        {mode === 'a1' && <div className="info-box"><b>BP A1 / BPA1</b><br />Bukti potong pegawai tetap/pensiunan pada Masa Pajak Terakhir. Mode ini menyajikan rekonsiliasi tahunan dalam urutan yang menyerupai pengecekan A1.</div>}
         <MoneyInput label={`${amountLabel} setahun / bagian tahun`} value={annualGross} onChange={setAnnualGross} />
         <MoneyInput label="Iuran pensiun/JHT yang boleh dikurangkan" value={pension} onChange={setPension} />
         <label className="field"><span>Jumlah bulan bekerja</span><input type="number" min="1" max="12" value={months} onChange={(e) => setMonths(e.target.value)} /><small>Untuk batas biaya jabatan: 5% dari bruto, maksimum Rp500.000 per bulan.</small></label>
@@ -88,8 +111,8 @@ function Pph21Calculator() {
     </section>
 
     <section className="panel result-panel">
-      <div className="eyebrow">Hasil PPh 21 — {method === 'grossUp' ? 'Gross Up' : method === 'nett' ? 'Nett' : 'Gross'}</div>
-      {mode === 'monthly' ? <>
+      <div className="eyebrow">{mode === 'a1' ? 'Rekonsiliasi BP A1' : `Hasil PPh 21 — ${method === 'grossUp' ? 'Gross Up' : method === 'nett' ? 'Nett' : 'Gross'}`}</div>
+      {!annualMode ? <>
         <div className="hero-result"><span>PPh 21 masa ini</span><strong>{formatRupiah(monthly.tax)}</strong></div>
         <ResultLine label="Kategori TER" value={`Kategori ${monthly.category}`} />
         <ResultLine label="Tarif efektif" value={`${monthly.rate}%`} />
@@ -99,16 +122,19 @@ function Pph21Calculator() {
         <ResultLine label="Take-home sebelum potongan lain" value={formatRupiah(monthly.takeHome)} strong />
         <ResultLine label="Biaya perusahaan" value={formatRupiah(monthly.companyCost)} />
       </> : <>
-        <div className="hero-result"><span>{annual.lastPeriodTax >= 0 ? 'PPh 21 masa pajak terakhir' : 'Kelebihan pemotongan'}</span><strong>{formatRupiah(Math.abs(annual.lastPeriodTax))}</strong></div>
-        <ResultLine label="Nilai dasar setahun" value={formatRupiah(annual.baseGross)} />
+        <div className="hero-result"><span>{annual.lastPeriodTax >= 0 ? (mode === 'a1' ? 'PPh 21 kurang dipotong pada A1' : 'PPh 21 masa pajak terakhir') : 'Kelebihan pemotongan'}</span><strong>{formatRupiah(Math.abs(annual.lastPeriodTax))}</strong></div>
+        {mode === 'a1' && <ResultLine label="1. Penghasilan bruto A1" value={formatRupiah(annual.gross)} strong />}
+        {mode !== 'a1' && <ResultLine label="Nilai dasar setahun" value={formatRupiah(annual.baseGross)} />}
         {method !== 'gross' && <ResultLine label={method === 'grossUp' ? 'Tunjangan pajak setahun' : 'PPh ditanggung perusahaan'} value={formatRupiah(method === 'grossUp' ? annual.taxAllowance : annual.employerBorneTax)} />}
-        <ResultLine label="Bruto untuk penghitungan pajak" value={formatRupiah(annual.gross)} />
-        <ResultLine label="Biaya jabatan" value={formatRupiah(annual.positionExpense)} />
-        <ResultLine label="Penghasilan neto" value={formatRupiah(annual.net)} />
-        <ResultLine label="PTKP" value={formatRupiah(annual.ptkp)} />
-        <ResultLine label="PKP" value={formatRupiah(annual.pkp)} />
-        <ResultLine label="PPh 21 setahun" value={formatRupiah(annual.annualTax)} strong />
-        <ResultLine label="Sudah dipotong" value={formatRupiah(annual.priorWithheld)} />
+        {mode !== 'a1' && <ResultLine label="Bruto untuk penghitungan pajak" value={formatRupiah(annual.gross)} />}
+        <ResultLine label={mode === 'a1' ? '2. Biaya jabatan' : 'Biaya jabatan'} value={formatRupiah(annual.positionExpense)} />
+        <ResultLine label={mode === 'a1' ? '3. Iuran pensiun/JHT' : 'Iuran pensiun/JHT'} value={formatRupiah(annual.pension)} />
+        <ResultLine label={mode === 'a1' ? '4. Penghasilan neto' : 'Penghasilan neto'} value={formatRupiah(annual.net)} />
+        <ResultLine label={mode === 'a1' ? '5. PTKP' : 'PTKP'} value={formatRupiah(annual.ptkp)} />
+        <ResultLine label={mode === 'a1' ? '6. PKP' : 'PKP'} value={formatRupiah(annual.pkp)} />
+        <ResultLine label={mode === 'a1' ? '7. PPh 21 setahun (Pasal 17)' : 'PPh 21 setahun'} value={formatRupiah(annual.annualTax)} strong />
+        <ResultLine label={mode === 'a1' ? '8. PPh 21 telah dipotong' : 'Sudah dipotong'} value={formatRupiah(annual.priorWithheld)} />
+        {mode === 'a1' && <ResultLine label="9. PPh masa terakhir / selisih" value={formatRupiah(annual.lastPeriodTax)} strong note="Negatif berarti kelebihan pemotongan." />}
       </>}
     </section>
   </div>;
@@ -145,13 +171,13 @@ function UnificationCalculator() {
 
 export default function TaxCalculator() {
   const [active, setActive] = useState('pph21');
-  const card = heroCards[active];
+  const card = regulationCards[active];
   return <main>
     <header className="topbar"><div className="brand-mark">KP</div><div className="brand-copy"><b>Kalkulator Pajak Kantor Kencana</b><span>Indonesia</span></div><div className="verified-pill">Aturan diverifikasi 20 Agustus 2026</div></header>
     <section className="hero"><div className="hero-copy"><div className="eyebrow">Kalkulator pajak Kantor Kencana</div><h1>Hitung Pajak dengan lebih <em>praktis</em>.</h1><p>PPh 21, PPN, PPh Final UMKM, dan PPh Unifikasi dalam satu kalkulator untuk membantu pekerjaan pajak rutin secara lebih cepat.</p></div><div className="law-card" key={active}><span>{card.kicker}</span><strong>{card.title}</strong><p>{card.text}</p></div></section>
     <nav className="tabs" aria-label="Jenis kalkulator pajak">{taxTabs.map((tab) => <button key={tab.id} className={active === tab.id ? 'active' : ''} onClick={() => setActive(tab.id)}>{tab.label}</button>)}</nav>
     {active === 'pph21' && <Pph21Calculator />}{active === 'ppn' && <VatCalculator />}{active === 'umkm' && <UmkmCalculator />}{active === 'unifikasi' && <UnificationCalculator />}
-    <section className="sources panel"><div><div className="eyebrow">Dasar aturan</div><h2>Sumber resmi yang dipakai</h2></div><div className="source-list"><a href="https://jdih.kemenkeu.go.id/dok/pp-58-tahun-2023" target="_blank" rel="noreferrer"><b>PP 58 Tahun 2023</b><span>Tarif Efektif PPh 21 kategori A/B/C</span></a><a href="https://jdih.kemenkeu.go.id/dok/pmk-168-tahun-2023" target="_blank" rel="noreferrer"><b>PMK 168 Tahun 2023</b><span>Pelaksanaan pemotongan PPh 21/26</span></a><a href="https://www.pajak.go.id/id/artikel/e-bupot-unifikasi" target="_blank" rel="noreferrer"><b>e-Bupot Unifikasi DJP</b><span>PPh 4(2), 15, 22, 23 dan nonresiden</span></a><a href="https://pajak.go.id/id/pph-pasal-2326" target="_blank" rel="noreferrer"><b>PPh Pasal 23/26</b><span>Objek dan tarif umum PPh 23/26</span></a></div></section>
-    <footer><p><b>Catatan:</b> Kalkulator ini membantu estimasi dan bukan pengganti bukti potong, Coretax/DJP, atau penelaahan profesional. Metode Nett dihitung dengan memperlakukan PPh yang ditanggung pemberi kerja sebagai penambah penghasilan bruto untuk memperoleh gross-equivalent.</p></footer>
+    <section className="sources panel"><div><div className="eyebrow">Dasar aturan</div><h2>Sumber resmi yang dipakai</h2></div><div className="source-list"><a href="https://jdih.kemenkeu.go.id/dok/pp-58-tahun-2023" target="_blank" rel="noreferrer"><b>PP 58 Tahun 2023</b><span>Tarif Efektif PPh 21 kategori A/B/C</span></a><a href="https://jdih.kemenkeu.go.id/dok/pmk-168-tahun-2023" target="_blank" rel="noreferrer"><b>PMK 168 Tahun 2023</b><span>Pelaksanaan pemotongan PPh 21/26</span></a><a href="https://jdih.kemenkeu.go.id/dok/pmk-131-tahun-2024" target="_blank" rel="noreferrer"><b>PMK 131 Tahun 2024</b><span>PPN dan DPP nilai lain</span></a><a href="https://jdih.kemenkeu.go.id/dok/pp-20-tahun-2026" target="_blank" rel="noreferrer"><b>PP 20 Tahun 2026</b><span>Pembaruan PPh Final UMKM</span></a><a href="https://www.pajak.go.id/id/artikel/e-bupot-unifikasi" target="_blank" rel="noreferrer"><b>e-Bupot Unifikasi DJP</b><span>PPh 4(2), 15, 22, 23 dan nonresiden</span></a><a href="https://pajak.go.id/id/pph-pasal-2326" target="_blank" rel="noreferrer"><b>PPh Pasal 23/26</b><span>Objek dan tarif umum PPh 23/26</span></a></div></section>
+    <footer><p><b>Catatan:</b> Kalkulator ini membantu estimasi dan bukan pengganti bukti potong, Coretax/DJP, atau penelaahan profesional. BP A1 pada kalkulator adalah tampilan rekonsiliasi untuk membantu pengecekan, bukan pengganti BPA1 resmi yang diterbitkan melalui Coretax.</p></footer>
   </main>;
 }
