@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   calculateAnnualPph21,
   calculateMonthlyPph21,
+  calculateMonthlyPph21ByMethod,
   calculateUmkmFinal,
   calculateVat
 } from '../lib/tax.js';
@@ -14,14 +15,24 @@ test('PPh21 TER contoh resmi K/0 bruto 10 juta = 200 ribu', () => {
   assert.equal(result.tax, 200_000);
 });
 
+test('PPh21 gross up K/0 dasar 10 juta menghasilkan sekitar 230.179', () => {
+  const result = calculateMonthlyPph21ByMethod({ amount: 10_000_000, ptkpStatus: 'K/0', method: 'grossUp' });
+  assert.equal(result.category, 'A');
+  assert.equal(result.rate, 2.25);
+  assert.equal(result.tax, 230_179);
+  assert.equal(result.taxAllowance, 230_179);
+  assert.equal(result.takeHome, 10_000_000);
+});
+
+test('PPh21 nett memakai gross equivalent yang sama dengan gross up', () => {
+  const result = calculateMonthlyPph21ByMethod({ amount: 10_000_000, ptkpStatus: 'K/0', method: 'nett' });
+  assert.equal(result.tax, 230_179);
+  assert.equal(result.employerBorneTax, 230_179);
+  assert.equal(result.takeHome, 10_000_000);
+});
+
 test('PPh21 masa terakhir contoh resmi = 515 ribu', () => {
-  const result = calculateAnnualPph21({
-    annualGross: 120_000_000,
-    pensionContribution: 1_200_000,
-    ptkpStatus: 'K/0',
-    monthsWorked: 12,
-    priorWithheld: 2_200_000
-  });
+  const result = calculateAnnualPph21({ annualGross: 120_000_000, pensionContribution: 1_200_000, ptkpStatus: 'K/0', monthsWorked: 12, priorWithheld: 2_200_000 });
   assert.equal(result.positionExpense, 6_000_000);
   assert.equal(result.pkp, 54_300_000);
   assert.equal(result.annualTax, 2_715_000);

@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Kalkulator Pajak Indonesia',
-  description: 'Kalkulator PPh 21, PPN, dan PPh Final UMKM berdasarkan ketentuan pajak Indonesia yang diverifikasi per 19 Agustus 2026.'
+  title: 'Kalkulator Pajak Kantor Kencana',
+  description: 'Kalkulator PPh 21, PPN, PPh Final UMKM, dan PPh Unifikasi untuk membantu perhitungan pajak Kantor Kencana.'
 };
 
 export default function RootLayout({ children }) {
