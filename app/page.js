@@ -1,4 +1,4 @@
-import TaxCalculator from '../components/TaxCalculatorPreviewV4';
+import TaxCalculator from '../components/TaxCalculatorPreviewV5';
 
 export default function Home() {
   return <TaxCalculator />;
