@@ -1,6 +1,5 @@
-import TaxCalculator from '../components/TaxCalculatorPreviewV3';
+import TaxCalculator from '../components/TaxCalculatorPreviewV4';
 
-// Preview entrypoint: regulation cards link to official government sources.
 export default function Home() {
   return <TaxCalculator />;
 }
