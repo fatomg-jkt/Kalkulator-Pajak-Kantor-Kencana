@@ -1,8 +1,9 @@
 import './globals.css';
+import './fonts.css';
 
 export const metadata = {
   title: 'Kalkulator Pajak Kantor Kencana',
-  description: 'Kalkulator PPh 21, PPN, PPh Final UMKM, dan PPh Unifikasi untuk membantu perhitungan pajak Kantor Kencana.'
+  description: 'Kalkulator PPh 21, PPN, PPh Final UMKM, PPh Unifikasi, dan PPh Badan untuk membantu perhitungan pajak Kantor Kencana.'
 };
 
 export default function RootLayout({ children }) {
